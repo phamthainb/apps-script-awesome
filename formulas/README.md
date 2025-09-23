@@ -7,11 +7,12 @@ Collection of frequently used AppSheet formulas and expressions.
 ## Scripts Available | Scripts có sẵn
 
 1. [Text Manipulation](./text-manipulation.md) - String operations and formatting
-2. [Date Calculations](./date-calculations.md) - Date and time operations
-3. [Number Operations](./number-operations.md) - Mathematical calculations
-4. [Conditional Logic](./conditional-logic.md) - IF statements and logical operations
-5. [List Operations](./list-operations.md) - Working with lists and arrays
-6. [Lookup Functions](./lookup-functions.md) - Data retrieval from related tables
+2. [Vietnamese Business](./vietnamese-business.md) - Formulas for Vietnamese business contexts
+3. [Date Calculations](./date-calculations.md) - Date and time operations
+4. [Number Operations](./number-operations.md) - Mathematical calculations
+5. [Conditional Logic](./conditional-logic.md) - IF statements and logical operations
+6. [List Operations](./list-operations.md) - Working with lists and arrays
+7. [Lookup Functions](./lookup-functions.md) - Data retrieval from related tables
 
 ## Formula Categories | Danh mục công thức
 

@@ -7,8 +7,8 @@ Collection of AppSheet scripts for validating user input and ensuring data quali
 ## Scripts Available | Scripts có sẵn
 
 1. [Email Validation](./email-validation.md) - Validate email format
-2. [Phone Number Validation](./phone-validation.md) - Validate phone numbers
-3. [Date Range Validation](./date-range-validation.md) - Validate date ranges
+2. [Phone Number Validation](./phone-validation.md) - Validate phone numbers  
+3. [Date Range Validation](./date-range-validation.md) - Validate date ranges and business rules
 4. [Required Fields Check](./required-fields.md) - Ensure required fields are filled
 5. [Duplicate Prevention](./duplicate-prevention.md) - Prevent duplicate entries
 
