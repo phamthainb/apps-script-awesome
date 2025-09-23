@@ -1,0 +1,73 @@
+# AppSheet Scripts Repository .gitignore
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+temp/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build and distribution
+dist/
+build/
+*.min.js
+*.min.css
+
+# Dependencies (if any Node.js tools are used)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+logs/
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.test
+secrets.txt
+config.private.*
+
+# AppSheet specific ignores
+*.appsheet
+*.backup
+
+# Documentation build artifacts
+docs/_build/
+docs/.doctrees/
+
+# Test coverage reports
+coverage/
+*.coverage
+
+# Local development files
+local/
+dev/
+sandbox/
+
+# Compressed files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Cache files
+.cache/
+*.cache
