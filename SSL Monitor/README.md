@@ -4,7 +4,14 @@ This Google Apps Script monitors SSL certificates for multiple domains and sends
 
 ## Features
 
-- Monitors SSL certificates for multiple domains
+- Monitors SSL cer- Certificate issuer
+
+---
+
+## Language / Ngôn ngữ
+
+- [🇺🇸 English](./README.md)
+- [🇻🇳 Tiếng Việt](./README.vi.md)ificates for multiple domains
 - Configurable alert threshold (days before expiration)
 - Telegram notifications for expiring certificates
 - Detailed SSL certificate information tracking

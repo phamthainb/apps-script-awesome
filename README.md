@@ -65,6 +65,23 @@ Keep track of SSL certificate expiration dates:
    - Copy the code from the chosen script
 4. **Configure & Deploy**: Follow the specific configuration steps for your selected script
 
+## 📖 Setup Guides
+
+### Essential Setup Instructions
+- **🔧 Trigger Setup Guide**: 
+  - [🇺🇸 English](./docs/trigger-setup-guide.en.md) | [🇻🇳 Tiếng Việt](./docs/trigger-setup-guide.vi.md)
+  - Comprehensive guide to setting up automated triggers for your monitoring scripts
+- **🤖 Telegram Bot Setup**: 
+  - [🇺🇸 English](./docs/telegram-bot-setup.en.md) | [🇻🇳 Tiếng Việt](./docs/telegram-bot-setup.vi.md)
+  - Step-by-step instructions to create a Telegram bot and get Chat ID for notifications
+
+### Quick Setup Checklist
+1. ✅ Create Telegram bot and get bot token
+2. ✅ Get your Telegram Chat ID  
+3. ✅ Set up Google Apps Script project
+4. ✅ Configure trigger for automated monitoring
+5. ✅ Test notifications
+
 ## Requirements
 
 - Google account (for Apps Script)
@@ -78,3 +95,10 @@ Feel free to submit issues, fork the repository, and create pull requests for an
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+## Language / Ngôn Ngữ
+
+- [🇺🇸 English](./README.md)
+- [🇻🇳 Tiếng Việt](./README.vi.md)

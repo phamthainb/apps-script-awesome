@@ -83,3 +83,51 @@ function sendTelegram(text) {
     payload: JSON.stringify(payload)
   });
 }
+
+function setupSheet() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = spreadsheet.getSheetByName('Apps');
+  
+  // Create sheet if it doesn't exist
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet('Apps');
+  }
+  
+  // Clear existing content
+  sheet.clear();
+  
+  // Set up headers
+  const headers = ['Platform', 'AppID', 'Country', 'LastVersion', 'LastCheck', 'Notes'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  
+  // Format headers
+  const headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setFontWeight('bold');
+  headerRange.setBackground('#4285f4');
+  headerRange.setFontColor('white');
+  
+  // Set column widths
+  sheet.setColumnWidth(1, 80);   // Platform
+  sheet.setColumnWidth(2, 200);  // AppID
+  sheet.setColumnWidth(3, 80);   // Country
+  sheet.setColumnWidth(4, 120);  // LastVersion
+  sheet.setColumnWidth(5, 150);  // LastCheck
+  sheet.setColumnWidth(6, 300);  // Notes
+  
+  // Add some example data
+  const exampleData = [
+    ['ios', '284882215', 'us', '', '', 'Facebook app'],
+    ['android', 'com.facebook.katana', 'us', '', '', 'Facebook app'],
+    ['ios', '389801252', 'us', '', '', 'Instagram app'],
+    ['android', 'com.instagram.android', 'us', '', '', 'Instagram app']
+  ];
+  
+  if (exampleData.length > 0) {
+    sheet.getRange(2, 1, exampleData.length, 6).setValues(exampleData);
+  }
+  
+  // Freeze header row
+  sheet.setFrozenRows(1);
+  
+  Logger.log('Sheet setup completed successfully!');
+}
