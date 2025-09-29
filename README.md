@@ -13,7 +13,7 @@ Google Apps Script is a cloud-based JavaScript platform that lets you automate t
 
 ## Available Scripts
 
-### 🌐 [URLMonitor](./URLMonitor/)
+### 🌐 [URL Monitor](./URL%20Monitor/)
 **Website Uptime Monitor with Telegram Alerts**
 
 A simple yet effective uptime monitoring solution that:
@@ -24,6 +24,34 @@ A simple yet effective uptime monitoring solution that:
 - Inspired by [Uptime Kuma](https://github.com/louislam/uptime-kuma)
 
 **Use Cases**: Server monitoring, API health checks, website availability tracking
+
+---
+
+### 📱 [App Version Monitor](./App%20Version%20Monitor/)
+**Mobile App Version Tracker with Telegram Alerts**
+
+Monitor app versions on Google Play Store and Apple App Store:
+- Tracks multiple apps with country-specific settings
+- Monitors both iOS (App Store) and Android (Google Play) apps
+- Stores version history, last check time, and release notes in Google Sheets
+- Sends instant Telegram notifications when new versions are detected
+- Automated monitoring with time-based triggers
+
+**Use Cases**: App release monitoring, competitor analysis, version tracking
+
+---
+
+### 🔒 [SSL Monitor](./SSL%20Monitor/)
+**SSL Certificate Expiration Monitor with Telegram Alerts**
+
+Keep track of SSL certificate expiration dates:
+- Monitors SSL certificates for multiple domains
+- Configurable alert threshold (days before expiration)
+- Sends Telegram notifications for expiring certificates
+- Tracks detailed SSL certificate information
+- Comprehensive error handling and logging
+
+**Use Cases**: SSL certificate management, website security monitoring, proactive maintenance
 
 ---
 
