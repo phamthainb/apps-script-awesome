@@ -19,15 +19,16 @@ Inspired by [Uptime Kuma](https://github.com/louislam/uptime-kuma).
 ### 1. Prepare Google Sheet
 Create a sheet named **`Websites`** with the following columns:
 
-| URL              | Note           | LastStatus | LastCheck          |
-|------------------|----------------|------------|--------------------|
-| https://abc.com  | Main Website   |            |                    |
-| https://xyz.com  | API Service    |            |                    |
+| URL              | Note           | Status   | LastStatus | LastCheck          |
+|------------------|----------------|----------|------------|--------------------|
+| https://abc.com  | Main Website   | Active   |            |                    |
+| https://xyz.com  | API Service    | Active   |            |                    |
 
 - Column A: URL to check  
 - Column B: Optional note  
-- Column C: Last HTTP status code (auto-updated)  
-- Column D: Last checked timestamp (auto-updated)  
+- Column C: Status (Active/Inactive) - only Active URLs will be checked  
+- Column D: Last HTTP status code (auto-updated)  
+- Column E: Last checked timestamp (auto-updated)  
 
 ---
 

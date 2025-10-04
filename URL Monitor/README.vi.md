@@ -19,15 +19,16 @@ Lấy cảm hứng từ [Uptime Kuma](https://github.com/louislam/uptime-kuma).
 ### 1. Chuẩn bị Google Sheet
 Tạo một sheet có tên **`Websites`** với các cột sau:
 
-| URL              | Note           | LastStatus | LastCheck          |
-|------------------|----------------|------------|--------------------|
-| https://abc.com  | Main Website   |            |                    |
-| https://xyz.com  | API Service    |            |                    |
+| URL              | Note           | Status   | LastStatus | LastCheck          |
+|------------------|----------------|----------|------------|--------------------|
+| https://abc.com  | Main Website   | Active   |            |                    |
+| https://xyz.com  | API Service    | Active   |            |                    |
 
 - Cột A: URL cần kiểm tra  
 - Cột B: Ghi chú tùy chọn  
-- Cột C: Mã trạng thái HTTP cuối cùng (tự động cập nhật)  
-- Cột D: Timestamp kiểm tra cuối (tự động cập nhật)  
+- Cột C: Trạng thái (Active/Inactive) - chỉ kiểm tra URL có trạng thái Active  
+- Cột D: Mã trạng thái HTTP cuối cùng (tự động cập nhật)  
+- Cột E: Timestamp kiểm tra cuối (tự động cập nhật)  
 
 ---
 

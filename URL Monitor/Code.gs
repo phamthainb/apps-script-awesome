@@ -7,7 +7,14 @@ function mainCheckWebsites() {
 
   for (let i = 1; i < data.length; i++) { // skip header row
     const url = data[i][0];
+    const status = data[i][2]; // Status column (Active/Inactive)
+    
     if (!url) continue;
+    
+    // Only check URL if status is Active
+    if (status && status.toString().toLowerCase() !== 'active') {
+      continue;
+    }
 
     let statusCode, message;
     try {
@@ -18,8 +25,8 @@ function mainCheckWebsites() {
     }
 
     // Update the sheet
-    sheet.getRange(i + 1, 3).setValue(statusCode); // LastStatus
-    sheet.getRange(i + 1, 4).setValue(new Date()); // LastCheck
+    sheet.getRange(i + 1, 4).setValue(statusCode); // LastStatus
+    sheet.getRange(i + 1, 5).setValue(new Date()); // LastCheck
 
     // If site is down, send Telegram alert
     if (statusCode !== 200) {
@@ -62,7 +69,7 @@ function setupSheet() {
   }
   
   // Set up headers
-  const headers = ['URL', 'Note', 'LastStatus', 'LastCheck'];
+  const headers = ['URL', 'Note', 'Status', 'LastStatus', 'LastCheck'];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   
   // Format headers
@@ -73,14 +80,15 @@ function setupSheet() {
   // Set column widths for better readability
   sheet.setColumnWidth(1, 300); // URL column
   sheet.setColumnWidth(2, 150); // Note column
-  sheet.setColumnWidth(3, 100); // LastStatus column
-  sheet.setColumnWidth(4, 180); // LastCheck column
+  sheet.setColumnWidth(3, 80);  // Status column
+  sheet.setColumnWidth(4, 100); // LastStatus column
+  sheet.setColumnWidth(5, 180); // LastCheck column
   
   // Add sample data if the sheet is newly created
   if (sheet.getLastRow() === 1) {
     const sampleData = [
-      ['https://example.com', 'Sample Website', '', ''],
-      ['https://google.com', 'Google Homepage', '', '']
+      ['https://example.com', 'Sample Website', 'Active', '', ''],
+      ['https://google.com', 'Google Homepage', 'Active', '', '']
     ];
     sheet.getRange(2, 1, sampleData.length, sampleData[0].length).setValues(sampleData);
     console.log('Added sample data to the sheet');
