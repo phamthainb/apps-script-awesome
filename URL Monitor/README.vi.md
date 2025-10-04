@@ -21,12 +21,12 @@ Tạo một sheet có tên **`Websites`** với các cột sau:
 
 | URL              | Note           | Status   | LastStatus | LastCheck          |
 |------------------|----------------|----------|------------|--------------------|
-| https://abc.com  | Main Website   | Active   |            |                    |
-| https://xyz.com  | API Service    | Active   |            |                    |
+| https://abc.com  | Main Website   | Enable   |            |                    |
+| https://xyz.com  | API Service    | Enable   |            |                    |
 
 - Cột A: URL cần kiểm tra  
 - Cột B: Ghi chú tùy chọn  
-- Cột C: Trạng thái (Active/Inactive) - chỉ kiểm tra URL có trạng thái Active  
+- Cột C: Trạng thái (Enable/Disable) - chỉ kiểm tra URL có trạng thái Enable  
 - Cột D: Mã trạng thái HTTP cuối cùng (tự động cập nhật)  
 - Cột E: Timestamp kiểm tra cuối (tự động cập nhật)  
 

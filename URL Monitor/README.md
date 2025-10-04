@@ -21,12 +21,12 @@ Create a sheet named **`Websites`** with the following columns:
 
 | URL              | Note           | Status   | LastStatus | LastCheck          |
 |------------------|----------------|----------|------------|--------------------|
-| https://abc.com  | Main Website   | Active   |            |                    |
-| https://xyz.com  | API Service    | Active   |            |                    |
+| https://abc.com  | Main Website   | Enable   |            |                    |
+| https://xyz.com  | API Service    | Enable   |            |                    |
 
 - Column A: URL to check  
 - Column B: Optional note  
-- Column C: Status (Active/Inactive) - only Active URLs will be checked  
+- Column C: Status (Enable/Disable) - only Enable URLs will be checked  
 - Column D: Last HTTP status code (auto-updated)  
 - Column E: Last checked timestamp (auto-updated)  
 

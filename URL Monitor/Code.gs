@@ -7,12 +7,12 @@ function mainCheckWebsites() {
 
   for (let i = 1; i < data.length; i++) { // skip header row
     const url = data[i][0];
-    const status = data[i][2]; // Status column (Active/Inactive)
+    const status = data[i][2]; // Status column (Enable/Disable)
     
     if (!url) continue;
     
-    // Only check URL if status is Active
-    if (status && status.toString().toLowerCase() !== 'active') {
+    // Only check URL if status is Enable
+    if (status && status.toString().toLowerCase() !== 'enable') {
       continue;
     }
 
@@ -87,8 +87,8 @@ function setupSheet() {
   // Add sample data if the sheet is newly created
   if (sheet.getLastRow() === 1) {
     const sampleData = [
-      ['https://example.com', 'Sample Website', 'Active', '', ''],
-      ['https://google.com', 'Google Homepage', 'Active', '', '']
+      ['https://example.com', 'Sample Website', 'Enable', '', ''],
+      ['https://google.com', 'Google Homepage', 'Enable', '', '']
     ];
     sheet.getRange(2, 1, sampleData.length, sampleData[0].length).setValues(sampleData);
     console.log('Added sample data to the sheet');
