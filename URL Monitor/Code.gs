@@ -4,29 +4,89 @@ const TELEGRAM_CHAT_ID = 'YOUR_CHAT_ID';
 function mainCheckWebsites() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Websites');
   const data = sheet.getDataRange().getValues();
-
+  
+  // Collect URLs to check and their row indices
+  const urlsToCheck = [];
+  const rowIndices = [];
+  
   for (let i = 1; i < data.length; i++) { // skip header row
     const url = data[i][0];
+    const status = data[i][2]; // Status column (Enable/Disable)
+    
     if (!url) continue;
-
-    let statusCode, message;
-    try {
-      const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-      statusCode = response.getResponseCode();
-    } catch (e) {
-      statusCode = 'DOWN';
+    
+    // Only check URL if status is Enable
+    if (status && status.toString().toLowerCase() !== 'enable') {
+      continue;
     }
-
-    // Update the sheet
-    sheet.getRange(i + 1, 3).setValue(statusCode); // LastStatus
-    sheet.getRange(i + 1, 4).setValue(new Date()); // LastCheck
-
-    // If site is down, send Telegram alert
-    if (statusCode !== 200) {
-      message = `🚨 Website DOWN\nURL: ${url}\nStatus: ${statusCode}`;
-      sendTelegram(message);
+    
+    urlsToCheck.push(url);
+    rowIndices.push(i);
+  }
+  
+  // If no URLs to check, return early
+  if (urlsToCheck.length === 0) {
+    console.log('No enabled URLs to check');
+    return;
+  }
+  
+  // Process URLs in batches to respect fetchAll limit of 50 requests
+  const BATCH_SIZE = 50;
+  const now = new Date();
+  const updates = [];
+  
+  for (let batchStart = 0; batchStart < urlsToCheck.length; batchStart += BATCH_SIZE) {
+    const batchEnd = Math.min(batchStart + BATCH_SIZE, urlsToCheck.length);
+    const batchUrls = urlsToCheck.slice(batchStart, batchEnd);
+    const batchIndices = rowIndices.slice(batchStart, batchEnd);
+    
+    // Prepare requests for this batch
+    const requests = batchUrls.map(url => ({
+      url: url,
+      muteHttpExceptions: true
+    }));
+    
+    // Fetch URLs in this batch in parallel
+    let responses;
+    try {
+      responses = UrlFetchApp.fetchAll(requests);
+    } catch (e) {
+      console.error(`Error fetching batch ${batchStart}-${batchEnd}: ${e.message}`);
+      continue; // Skip this batch and continue with the next
+    }
+    
+    // Process responses for this batch
+    for (let i = 0; i < responses.length; i++) {
+      const url = batchUrls[i];
+      const rowIndex = batchIndices[i];
+      let statusCode;
+      
+      try {
+        statusCode = responses[i].getResponseCode();
+      } catch (e) {
+        statusCode = 'DOWN';
+      }
+      
+      // Prepare batch update for sheet
+      updates.push({
+        row: rowIndex + 1,
+        statusCode: statusCode,
+        time: now
+      });
+      
+      // If site is down, send Telegram alert
+      if (statusCode !== 200) {
+        const message = `🚨 Website DOWN\nURL: ${url}\nStatus: ${statusCode}`;
+        sendTelegram(message);
+      }
     }
   }
+  
+  // Batch update the sheet for better performance
+  updates.forEach(update => {
+    sheet.getRange(update.row, 4).setValue(update.statusCode); // LastStatus
+    sheet.getRange(update.row, 5).setValue(update.time); // LastCheck
+  });
 }
 
 function sendTelegram(text) {
@@ -62,7 +122,7 @@ function setupSheet() {
   }
   
   // Set up headers
-  const headers = ['URL', 'Note', 'LastStatus', 'LastCheck'];
+  const headers = ['URL', 'Note', 'Status', 'LastStatus', 'LastCheck'];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   
   // Format headers
@@ -73,14 +133,15 @@ function setupSheet() {
   // Set column widths for better readability
   sheet.setColumnWidth(1, 300); // URL column
   sheet.setColumnWidth(2, 150); // Note column
-  sheet.setColumnWidth(3, 100); // LastStatus column
-  sheet.setColumnWidth(4, 180); // LastCheck column
+  sheet.setColumnWidth(3, 80);  // Status column
+  sheet.setColumnWidth(4, 100); // LastStatus column
+  sheet.setColumnWidth(5, 180); // LastCheck column
   
   // Add sample data if the sheet is newly created
   if (sheet.getLastRow() === 1) {
     const sampleData = [
-      ['https://example.com', 'Sample Website', '', ''],
-      ['https://google.com', 'Google Homepage', '', '']
+      ['https://example.com', 'Sample Website', 'Enable', '', ''],
+      ['https://google.com', 'Google Homepage', 'Enable', '', '']
     ];
     sheet.getRange(2, 1, sampleData.length, sampleData[0].length).setValues(sampleData);
     console.log('Added sample data to the sheet');
