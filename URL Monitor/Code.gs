@@ -4,7 +4,11 @@ const TELEGRAM_CHAT_ID = 'YOUR_CHAT_ID';
 function mainCheckWebsites() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Websites');
   const data = sheet.getDataRange().getValues();
-
+  
+  // Collect URLs to check and their row indices
+  const urlsToCheck = [];
+  const rowIndices = [];
+  
   for (let i = 1; i < data.length; i++) { // skip header row
     const url = data[i][0];
     const status = data[i][2]; // Status column (Enable/Disable)
@@ -15,25 +19,66 @@ function mainCheckWebsites() {
     if (status && status.toString().toLowerCase() !== 'enable') {
       continue;
     }
-
-    let statusCode, message;
+    
+    urlsToCheck.push(url);
+    rowIndices.push(i);
+  }
+  
+  // If no URLs to check, return early
+  if (urlsToCheck.length === 0) {
+    console.log('No enabled URLs to check');
+    return;
+  }
+  
+  // Prepare requests for parallel fetching
+  const requests = urlsToCheck.map(url => ({
+    url: url,
+    muteHttpExceptions: true
+  }));
+  
+  // Fetch all URLs in parallel
+  let responses;
+  try {
+    responses = UrlFetchApp.fetchAll(requests);
+  } catch (e) {
+    console.error('Error fetching URLs: ' + e.message);
+    return;
+  }
+  
+  // Process responses and update sheet
+  const now = new Date();
+  const updates = [];
+  
+  for (let i = 0; i < responses.length; i++) {
+    const url = urlsToCheck[i];
+    const rowIndex = rowIndices[i];
+    let statusCode;
+    
     try {
-      const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-      statusCode = response.getResponseCode();
+      statusCode = responses[i].getResponseCode();
     } catch (e) {
       statusCode = 'DOWN';
     }
-
-    // Update the sheet
-    sheet.getRange(i + 1, 4).setValue(statusCode); // LastStatus
-    sheet.getRange(i + 1, 5).setValue(new Date()); // LastCheck
-
+    
+    // Prepare batch update for sheet
+    updates.push({
+      row: rowIndex + 1,
+      statusCode: statusCode,
+      time: now
+    });
+    
     // If site is down, send Telegram alert
     if (statusCode !== 200) {
-      message = `🚨 Website DOWN\nURL: ${url}\nStatus: ${statusCode}`;
+      const message = `🚨 Website DOWN\nURL: ${url}\nStatus: ${statusCode}`;
       sendTelegram(message);
     }
   }
+  
+  // Batch update the sheet for better performance
+  updates.forEach(update => {
+    sheet.getRange(update.row, 4).setValue(update.statusCode); // LastStatus
+    sheet.getRange(update.row, 5).setValue(update.time); // LastCheck
+  });
 }
 
 function sendTelegram(text) {
