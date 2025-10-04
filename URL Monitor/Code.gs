@@ -30,47 +30,55 @@ function mainCheckWebsites() {
     return;
   }
   
-  // Prepare requests for parallel fetching
-  const requests = urlsToCheck.map(url => ({
-    url: url,
-    muteHttpExceptions: true
-  }));
-  
-  // Fetch all URLs in parallel
-  let responses;
-  try {
-    responses = UrlFetchApp.fetchAll(requests);
-  } catch (e) {
-    console.error('Error fetching URLs: ' + e.message);
-    return;
-  }
-  
-  // Process responses and update sheet
+  // Process URLs in batches to respect fetchAll limit of 50 requests
+  const BATCH_SIZE = 50;
   const now = new Date();
   const updates = [];
   
-  for (let i = 0; i < responses.length; i++) {
-    const url = urlsToCheck[i];
-    const rowIndex = rowIndices[i];
-    let statusCode;
+  for (let batchStart = 0; batchStart < urlsToCheck.length; batchStart += BATCH_SIZE) {
+    const batchEnd = Math.min(batchStart + BATCH_SIZE, urlsToCheck.length);
+    const batchUrls = urlsToCheck.slice(batchStart, batchEnd);
+    const batchIndices = rowIndices.slice(batchStart, batchEnd);
     
+    // Prepare requests for this batch
+    const requests = batchUrls.map(url => ({
+      url: url,
+      muteHttpExceptions: true
+    }));
+    
+    // Fetch URLs in this batch in parallel
+    let responses;
     try {
-      statusCode = responses[i].getResponseCode();
+      responses = UrlFetchApp.fetchAll(requests);
     } catch (e) {
-      statusCode = 'DOWN';
+      console.error(`Error fetching batch ${batchStart}-${batchEnd}: ${e.message}`);
+      continue; // Skip this batch and continue with the next
     }
     
-    // Prepare batch update for sheet
-    updates.push({
-      row: rowIndex + 1,
-      statusCode: statusCode,
-      time: now
-    });
-    
-    // If site is down, send Telegram alert
-    if (statusCode !== 200) {
-      const message = `🚨 Website DOWN\nURL: ${url}\nStatus: ${statusCode}`;
-      sendTelegram(message);
+    // Process responses for this batch
+    for (let i = 0; i < responses.length; i++) {
+      const url = batchUrls[i];
+      const rowIndex = batchIndices[i];
+      let statusCode;
+      
+      try {
+        statusCode = responses[i].getResponseCode();
+      } catch (e) {
+        statusCode = 'DOWN';
+      }
+      
+      // Prepare batch update for sheet
+      updates.push({
+        row: rowIndex + 1,
+        statusCode: statusCode,
+        time: now
+      });
+      
+      // If site is down, send Telegram alert
+      if (statusCode !== 200) {
+        const message = `🚨 Website DOWN\nURL: ${url}\nStatus: ${statusCode}`;
+        sendTelegram(message);
+      }
     }
   }
   
