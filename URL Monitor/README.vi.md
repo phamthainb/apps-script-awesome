@@ -19,16 +19,17 @@ Lấy cảm hứng từ [Uptime Kuma](https://github.com/louislam/uptime-kuma).
 ### 1. Chuẩn bị Google Sheet
 Tạo một sheet có tên **`Websites`** với các cột sau:
 
-| URL              | Note           | Status   | LastStatus | LastCheck          |
-|------------------|----------------|----------|------------|--------------------|
-| https://abc.com  | Main Website   | Enable   |            |                    |
-| https://xyz.com  | API Service    | Enable   |            |                    |
+| URL              | Note           | Status   | LastStatus | LastCheck          | AlertScript                                      |
+|------------------|----------------|----------|------------|--------------------|-------------------------------------------------|
+| https://abc.com  | Main Website   | Enable   |            |                    |                                                 |
+| https://xyz.com  | API Service    | Enable   |            |                    | shouldAlert(response){return response.statusCode !== 401;} |
 
 - Cột A: URL cần kiểm tra  
 - Cột B: Ghi chú tùy chọn  
 - Cột C: Trạng thái (Enable/Disable) - chỉ kiểm tra URL có trạng thái Enable  
 - Cột D: Mã trạng thái HTTP cuối cùng (tự động cập nhật)  
 - Cột E: Timestamp kiểm tra cuối (tự động cập nhật)  
+- Cột F: Script cảnh báo tùy chỉnh (tùy chọn) - Hàm JavaScript để xác định có gửi cảnh báo hay không
 
 ---
 
@@ -91,6 +92,63 @@ Downtime: 15 minutes
 
 ## Cấu hình nâng cao
 
+### Custom Alert Scripts (Script cảnh báo tùy chỉnh)
+
+Bạn có thể định nghĩa các hàm JavaScript tùy chỉnh trong cột **AlertScript** để kiểm soát khi nào cảnh báo sẽ được gửi. Điều này hữu ích khi một website trả về mã trạng thái khác 200 nhưng vẫn được coi là "live".
+
+**Định dạng:**
+```javascript
+shouldAlert(response){return true/false;}
+```
+
+hoặc với từ khóa `async` (sẽ tự động bị loại bỏ):
+```javascript
+async shouldAlert(response){return true/false;}
+```
+
+**Các thuộc tính response có sẵn:**
+- `response.statusCode` - Mã trạng thái HTTP
+- `response.getResponseCode()` - Method để lấy mã trạng thái
+- `response.getContentText()` - Method để lấy nội dung response
+- `response.getHeaders()` - Method để lấy response headers
+
+**Ví dụ:**
+
+1. **Không cảnh báo cho 401 (Unauthorized):**
+```javascript
+shouldAlert(response){return response.statusCode !== 401;}
+```
+
+2. **Không cảnh báo cho 405 (Method Not Allowed):**
+```javascript
+shouldAlert(response){return response.statusCode !== 405;}
+```
+
+3. **Chỉ cảnh báo cho lỗi server (5xx):**
+```javascript
+shouldAlert(response){return response.statusCode >= 500;}
+```
+
+4. **Cảnh báo cho response không phải 2xx trừ 401 và 405:**
+```javascript
+shouldAlert(response){
+  const code = response.statusCode;
+  if (code === 401 || code === 405) return false;
+  return code < 200 || code >= 300;
+}
+```
+
+5. **Kiểm tra nội dung response:**
+```javascript
+shouldAlert(response){
+  if (response.statusCode !== 200) return true;
+  const content = response.getContentText();
+  return !content.includes('expected text');
+}
+```
+
+**Lưu ý:** Nếu không có script tùy chỉnh, hành vi mặc định là cảnh báo khi mã trạng thái khác 200.
+
 ### Tùy chỉnh timeout
 ```javascript
 const options = {
@@ -99,19 +157,6 @@ const options = {
   'muteHttpExceptions': true,
   'timeout': 30000 // 30 giây
 };
-```
-
-### Kiểm tra nội dung response
-```javascript
-// Kiểm tra cả status code và nội dung response
-if (response.getResponseCode() === 200) {
-  const content = response.getContentText();
-  if (content.includes('expected content')) {
-    // Website OK
-  } else {
-    // Website có vấn đề về nội dung
-  }
-}
 ```
 
 ---

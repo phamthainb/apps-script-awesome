@@ -8,10 +8,12 @@ function mainCheckWebsites() {
   // Collect URLs to check and their row indices
   const urlsToCheck = [];
   const rowIndices = [];
+  const alertScripts = [];
   
   for (let i = 1; i < data.length; i++) { // skip header row
     const url = data[i][0];
     const status = data[i][2]; // Status column (Enable/Disable)
+    const alertScript = data[i][5]; // AlertScript column (optional custom script)
     
     if (!url) continue;
     
@@ -22,6 +24,7 @@ function mainCheckWebsites() {
     
     urlsToCheck.push(url);
     rowIndices.push(i);
+    alertScripts.push(alertScript || '');
   }
   
   // If no URLs to check, return early
@@ -59,6 +62,7 @@ function mainCheckWebsites() {
     for (let i = 0; i < responses.length; i++) {
       const url = batchUrls[i];
       const rowIndex = batchIndices[i];
+      const alertScript = alertScripts[batchStart + i];
       let statusCode;
       
       try {
@@ -74,8 +78,19 @@ function mainCheckWebsites() {
         time: now
       });
       
-      // If site is down, send Telegram alert
-      if (statusCode !== 200) {
+      // Determine if alert should be sent
+      let shouldAlert = false;
+      
+      if (alertScript) {
+        // Use custom alert script if provided
+        shouldAlert = evaluateAlertScript(alertScript, responses[i], statusCode);
+      } else {
+        // Default behavior: alert if status code is not 200
+        shouldAlert = (statusCode !== 200);
+      }
+      
+      // Send Telegram alert if needed
+      if (shouldAlert) {
         const message = `🚨 Website DOWN\nURL: ${url}\nStatus: ${statusCode}`;
         sendTelegram(message);
       }
@@ -104,6 +119,69 @@ function sendTelegram(text) {
 }
 
 /**
+ * Evaluates a custom alert script to determine if an alert should be sent
+ * @param {string} script - The custom JavaScript function as a string
+ * @param {HTTPResponse} response - The HTTP response object
+ * @param {number|string} statusCode - The status code
+ * @return {boolean} - True if alert should be sent, false otherwise
+ */
+function evaluateAlertScript(script, response, statusCode) {
+  try {
+    // Create a safe context for the custom script
+    // The script should be in format: shouldAlert(response){return true/false;}
+    
+    // Strip 'async' keyword if present, as Apps Script doesn't support async/await
+    let cleanScript = script.trim().replace(/^async\s+/, '');
+    
+    // Build a response object with safe properties
+    const safeResponse = {
+      statusCode: statusCode,
+      getResponseCode: function() { return statusCode; },
+      getContentText: function() { 
+        try {
+          return response.getContentText();
+        } catch (e) {
+          return '';
+        }
+      },
+      getHeaders: function() {
+        try {
+          return response.getHeaders();
+        } catch (e) {
+          return {};
+        }
+      }
+    };
+    
+    // Convert the function into an immediately invoked function expression (IIFE)
+    // This avoids namespace pollution from eval
+    let shouldAlert;
+    
+    if (cleanScript.includes('function shouldAlert')) {
+      // Script defines shouldAlert function: function shouldAlert(response){...}
+      // Wrap it in an IIFE
+      const wrappedScript = '(' + cleanScript + ')(safeResponse)';
+      shouldAlert = eval(wrappedScript);
+    } else if (cleanScript.startsWith('shouldAlert')) {
+      // Script is function expression: shouldAlert(response){...}
+      // Convert to function expression and invoke
+      const wrappedScript = '(function ' + cleanScript + ')(safeResponse)';
+      shouldAlert = eval(wrappedScript);
+    } else {
+      // Try to evaluate as direct expression
+      shouldAlert = eval(cleanScript);
+    }
+    
+    return Boolean(shouldAlert);
+  } catch (e) {
+    console.error(`Error evaluating alert script: ${e.message}`);
+    console.error(`Script: ${script}`);
+    // On error, fall back to default behavior (alert if status != 200)
+    return (statusCode !== 200);
+  }
+}
+
+/**
  * Setup function to create the Websites sheet with proper headers
  * Run this function once to initialize your spreadsheet
  */
@@ -122,7 +200,7 @@ function setupSheet() {
   }
   
   // Set up headers
-  const headers = ['URL', 'Note', 'Status', 'LastStatus', 'LastCheck'];
+  const headers = ['URL', 'Note', 'Status', 'LastStatus', 'LastCheck', 'AlertScript'];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   
   // Format headers
@@ -136,12 +214,14 @@ function setupSheet() {
   sheet.setColumnWidth(3, 80);  // Status column
   sheet.setColumnWidth(4, 100); // LastStatus column
   sheet.setColumnWidth(5, 180); // LastCheck column
+  sheet.setColumnWidth(6, 400); // AlertScript column
   
   // Add sample data if the sheet is newly created
   if (sheet.getLastRow() === 1) {
     const sampleData = [
-      ['https://example.com', 'Sample Website', 'Enable', '', ''],
-      ['https://google.com', 'Google Homepage', 'Enable', '', '']
+      ['https://example.com', 'Sample Website', 'Enable', '', '', ''],
+      ['https://google.com', 'Google Homepage', 'Enable', '', '', ''],
+      ['https://httpstat.us/405', 'Test 405 Status', 'Enable', '', '', 'shouldAlert(response){return response.statusCode !== 405;}']
     ];
     sheet.getRange(2, 1, sampleData.length, sampleData[0].length).setValues(sampleData);
     console.log('Added sample data to the sheet');

@@ -19,16 +19,17 @@ Inspired by [Uptime Kuma](https://github.com/louislam/uptime-kuma).
 ### 1. Prepare Google Sheet
 Create a sheet named **`Websites`** with the following columns:
 
-| URL              | Note           | Status   | LastStatus | LastCheck          |
-|------------------|----------------|----------|------------|--------------------|
-| https://abc.com  | Main Website   | Enable   |            |                    |
-| https://xyz.com  | API Service    | Enable   |            |                    |
+| URL              | Note           | Status   | LastStatus | LastCheck          | AlertScript                                      |
+|------------------|----------------|----------|------------|--------------------|-------------------------------------------------|
+| https://abc.com  | Main Website   | Enable   |            |                    |                                                 |
+| https://xyz.com  | API Service    | Enable   |            |                    | shouldAlert(response){return response.statusCode !== 401;} |
 
 - Column A: URL to check  
 - Column B: Optional note  
 - Column C: Status (Enable/Disable) - only Enable URLs will be checked  
 - Column D: Last HTTP status code (auto-updated)  
 - Column E: Last checked timestamp (auto-updated)  
+- Column F: Custom alert script (optional) - JavaScript function to determine if alert should be sent
 
 ---
 
@@ -93,6 +94,63 @@ Downtime: 15 minutes
 
 ## Advanced Configuration
 
+### Custom Alert Scripts
+
+You can define custom JavaScript functions in the **AlertScript** column to control when alerts should be sent. This is useful when a website returns non-200 status codes but is still considered "live".
+
+**Format:**
+```javascript
+shouldAlert(response){return true/false;}
+```
+
+or with `async` keyword (will be automatically stripped):
+```javascript
+async shouldAlert(response){return true/false;}
+```
+
+**Available response properties:**
+- `response.statusCode` - The HTTP status code
+- `response.getResponseCode()` - Method to get status code
+- `response.getContentText()` - Method to get response body
+- `response.getHeaders()` - Method to get response headers
+
+**Examples:**
+
+1. **Don't alert for 401 (Unauthorized):**
+```javascript
+shouldAlert(response){return response.statusCode !== 401;}
+```
+
+2. **Don't alert for 405 (Method Not Allowed):**
+```javascript
+shouldAlert(response){return response.statusCode !== 405;}
+```
+
+3. **Only alert for server errors (5xx):**
+```javascript
+shouldAlert(response){return response.statusCode >= 500;}
+```
+
+4. **Alert for non-2xx responses except 401 and 405:**
+```javascript
+shouldAlert(response){
+  const code = response.statusCode;
+  if (code === 401 || code === 405) return false;
+  return code < 200 || code >= 300;
+}
+```
+
+5. **Check response content:**
+```javascript
+shouldAlert(response){
+  if (response.statusCode !== 200) return true;
+  const content = response.getContentText();
+  return !content.includes('expected text');
+}
+```
+
+**Note:** If no custom script is provided, the default behavior is to alert when status code is not 200.
+
 ### Customize timeout
 ```javascript
 const options = {
@@ -101,19 +159,6 @@ const options = {
   'muteHttpExceptions': true,
   'timeout': 30000 // 30 seconds
 };
-```
-
-### Check response content
-```javascript
-// Check both status code and response content
-if (response.getResponseCode() === 200) {
-  const content = response.getContentText();
-  if (content.includes('expected content')) {
-    // Website OK
-  } else {
-    // Website has content issues
-  }
-}
 ```
 
 ---
