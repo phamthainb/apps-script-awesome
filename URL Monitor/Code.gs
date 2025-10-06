@@ -128,8 +128,7 @@ function sendTelegram(text) {
 function evaluateAlertScript(script, response, statusCode) {
   try {
     // Create a safe context for the custom script
-    // The script should be in format: async shouldAlert(response){return true/false;}
-    // or: function shouldAlert(response){return true/false;}
+    // The script should be in format: shouldAlert(response){return true/false;}
     
     // Strip 'async' keyword if present, as Apps Script doesn't support async/await
     let cleanScript = script.trim().replace(/^async\s+/, '');
@@ -154,18 +153,20 @@ function evaluateAlertScript(script, response, statusCode) {
       }
     };
     
-    // Evaluate the custom script function
+    // Convert the function into an immediately invoked function expression (IIFE)
+    // This avoids namespace pollution from eval
     let shouldAlert;
     
-    // Check if the script defines a function or is a direct function
     if (cleanScript.includes('function shouldAlert')) {
-      // Script defines shouldAlert function
-      eval(cleanScript);
-      shouldAlert = shouldAlert(safeResponse);
+      // Script defines shouldAlert function: function shouldAlert(response){...}
+      // Wrap it in an IIFE
+      const wrappedScript = '(' + cleanScript + ')(safeResponse)';
+      shouldAlert = eval(wrappedScript);
     } else if (cleanScript.startsWith('shouldAlert')) {
       // Script is function expression: shouldAlert(response){...}
-      eval('function ' + cleanScript);
-      shouldAlert = shouldAlert(safeResponse);
+      // Convert to function expression and invoke
+      const wrappedScript = '(function ' + cleanScript + ')(safeResponse)';
+      shouldAlert = eval(wrappedScript);
     } else {
       // Try to evaluate as direct expression
       shouldAlert = eval(cleanScript);
